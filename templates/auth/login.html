@@ -1,25 +1,24 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card card">
-    <div class="card-body">
-      <h3 class="mb-3">Login</h3>
-      <form method="post">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="mb-3">
-          <label class="form-label">Username</label>
-          {{ form.username }}
-          {{ form.username.errors }}
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Password</label>
-          {{ form.password }}
-          {{ form.password.errors }}
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-      </form>
+{% block auth_content %}
+<div class="card-body">
+  <h3 class="mb-3 text-center">Đăng nhập</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="mb-3">
+      <label class="form-label">Tên đăng nhập</label>
+      {{ form.username }}
+      {{ form.username.errors }}
     </div>
-  </div>
+    <div class="mb-3">
+      <label class="form-label">Mật khẩu</label>
+      {{ form.password }}
+      {{ form.password.errors }}
+    </div>
+    <button type="submit" class="btn btn-primary w-100 mb-2">Đăng nhập</button>
+    <div class="text-center">
+      <a href="{% url 'accounts:register' %}">Chưa có tài khoản? Đăng ký</a>
+    </div>
+  </form>
 </div>
 {% endblock %}

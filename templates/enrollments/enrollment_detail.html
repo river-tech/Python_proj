@@ -1,21 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Enrollment Detail</h2>
+<h2>Chi tiết đăng ký</h2>
 <div class="card mb-3">
   <div class="card-body">
-    <p><strong>Student:</strong> {{ enrollment.student.student_code }}</p>
-    <p><strong>Course:</strong> {{ enrollment.course.code }} - {{ enrollment.course.name }}</p>
-    <p><strong>Semester:</strong> {{ enrollment.semester }}</p>
-    <p><strong>Created:</strong> {{ enrollment.created_at }}</p>
+    <p><strong>Sinh viên:</strong> {{ enrollment.student.student_code }}</p>
+    <p><strong>Môn học:</strong> {{ enrollment.course.code }} - {{ enrollment.course.name }}</p>
+    <p><strong>Học kỳ:</strong> {{ enrollment.semester }}</p>
+    <p><strong>Ngày tạo:</strong> {{ enrollment.created_at }}</p>
     {% if enrollment.grade %}
-      <p><strong>Grade:</strong> {{ enrollment.grade.score }}</p>
+      <p><strong>Điểm:</strong> {{ enrollment.grade.score }}</p>
     {% else %}
-      <p><strong>Grade:</strong> Not assigned</p>
+      <p><strong>Điểm:</strong> Chưa nhập</p>
     {% endif %}
   </div>
 </div>
 <div class="d-flex gap-2">
-  <a class="btn btn-secondary" href="{% url 'enrollments:list' %}">Back</a>
-  <a class="btn btn-primary" href="{% url 'enrollments:grade_update' enrollment.pk %}">Grade</a>
+  <a class="btn btn-secondary" href="{% url 'enrollments:list' %}">Quay lại</a>
+  {% if user.role == "ADMIN" or user.role == "TEACHER" %}
+    <a class="btn btn-primary" href="{% url 'enrollments:grade_update' enrollment.pk %}">Nhập điểm</a>
+  {% endif %}
+  {% if user.role == "ADMIN" or enrollment.student.user_id == user.id %}
+    <form method="post" action="{% url 'enrollments:delete' enrollment.pk %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger" onclick="return confirm('Xóa đăng ký này?')">Xóa</button>
+    </form>
+  {% endif %}
 </div>
 {% endblock %}

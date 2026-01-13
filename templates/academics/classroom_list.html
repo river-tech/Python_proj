@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>Classrooms</h2>
-  <a class="btn btn-primary btn-sm" href="{% url 'academics:classroom_create' %}">+ New Classroom</a>
+  <h2>Lớp</h2>
+  {% if user.role == "ADMIN" or user.role == "TEACHER" %}
+    <a class="btn btn-primary btn-sm" href="{% url 'academics:classroom_create' %}">+ Thêm lớp</a>
+  {% endif %}
 </div>
 <table class="table table-striped table-bordered">
   <thead>
-    <tr><th>Name</th><th>Department</th><th>Actions</th></tr>
+    <tr><th>Tên lớp</th><th>Khoa</th><th>Thao tác</th></tr>
   </thead>
   <tbody>
     {% for room in classrooms %}
@@ -14,11 +16,15 @@
       <td>{{ room.name }}</td>
       <td>{{ room.department.code }}</td>
       <td class="d-flex gap-2">
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:classroom_update' room.pk %}">Edit</a>
-        <form method="post" action="{% url 'academics:classroom_delete' room.pk %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this classroom?')">Delete</button>
-        </form>
+        {% if user.role == "ADMIN" or user.role == "TEACHER" %}
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:classroom_update' room.pk %}">Sửa</a>
+          <form method="post" action="{% url 'academics:classroom_delete' room.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa lớp này?')">Xóa</button>
+          </form>
+        {% else %}
+          <span class="text-muted">Xem</span>
+        {% endif %}
       </td>
     </tr>
     {% empty %}

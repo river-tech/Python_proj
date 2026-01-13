@@ -3,6 +3,7 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 import dj_database_url
+import config.monkeypatch  # noqa: F401 - apply compatibility patch early
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -95,6 +96,10 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = ["apps.accounts.backends.AccountUserBackend"]
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

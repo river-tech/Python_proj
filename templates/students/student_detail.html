@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Student Detail</h2>
+<h2>Chi tiết sinh viên</h2>
 <div class="card mb-3">
   <div class="card-body">
-    <p><strong>Code:</strong> {{ student.student_code }}</p>
-    <p><strong>User:</strong> {{ student.user.username }}</p>
-    <p><strong>Classroom:</strong> {{ student.classroom.name }}</p>
-    <p><strong>Date of Birth:</strong> {{ student.date_of_birth|default:"-" }}</p>
+    <p><strong>Mã SV:</strong> {{ student.student_code }}</p>
+    <p><strong>Tài khoản:</strong> {{ student.user.username }}</p>
+    <p><strong>Lớp:</strong> {{ student.classroom.name }} ({{ student.classroom.department.name }})</p>
+    <p><strong>Ngày sinh:</strong> {{ student.date_of_birth|default:"-" }}</p>
   </div>
 </div>
 <div class="d-flex gap-2">
-  <a class="btn btn-secondary" href="{% url 'students:list' %}">Back</a>
-  <a class="btn btn-primary" href="{% url 'students:update' student.pk %}">Edit</a>
+  <a class="btn btn-secondary" href="{% url 'students:list' %}">Quay lại</a>
+  {% if user.role == "ADMIN" or user.role == "TEACHER" %}
+    <a class="btn btn-primary" href="{% url 'students:update' student.pk %}">Chỉnh sửa</a>
+  {% endif %}
 </div>
 {% endblock %}

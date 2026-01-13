@@ -2,10 +2,12 @@ from django.db import models
 
 
 class Department(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
 
     class Meta:
+        managed = False
         db_table = "academics_department"
 
     def __str__(self):
@@ -13,10 +15,12 @@ class Department(models.Model):
 
 
 class ClassRoom(models.Model):
-    name = models.CharField(max_length=255)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="classrooms")
+    id = models.BigAutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.RESTRICT, related_name="classrooms")
 
     class Meta:
+        managed = False
         db_table = "academics_classroom"
 
     def __str__(self):
@@ -24,11 +28,13 @@ class ClassRoom(models.Model):
 
 
 class Course(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=50, unique=True)
-    credits = models.PositiveIntegerField()
+    credits = models.IntegerField()
 
     class Meta:
+        managed = False
         db_table = "academics_course"
 
     def __str__(self):
