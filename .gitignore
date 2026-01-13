@@ -1,0 +1,73 @@
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+
+# =========================
+# Virtual environment
+# =========================
+.venv/
+venv/
+ENV/
+env/
+
+# =========================
+# Django
+# =========================
+db.sqlite3
+staticfiles/
+media/
+*.log
+
+# Django migrations (GIỮ nếu DB-first, bỏ nếu muốn)
+**/migrations/
+!**/migrations/__init__.py
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# =========================
+# OS
+# =========================
+Thumbs.db
+
+# =========================
+# Node (phòng hờ)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Build / cache
+# =========================
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Git
+# =========================
+*.orig
