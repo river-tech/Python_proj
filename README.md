@@ -1,194 +1,165 @@
-# Student Management System (Django MVC)
+# Student Management System – Full Django Template (MVC)
 
-## 1) Project Overview
-- **Mục tiêu:** Xây dựng **Hệ thống Quản lý Sinh viên (Student Management System)** cho phép quản lý sinh viên, khoa/lớp, môn học, đăng ký môn và điểm số. Hệ thống theo hướng **API-first** sử dụng **Django + Django REST Framework + JWT (SimpleJWT)**.
-- **Vai trò:**
-  - **Student:** đăng nhập, xem hồ sơ cá nhân, xem môn đã đăng ký, xem điểm.
-  - **Teacher:** xem danh sách sinh viên theo lớp/môn, nhập/cập nhật điểm (MVP có thể để Admin thực hiện).
-  - **Admin:** quản trị sinh viên, khoa/lớp, môn học, đăng ký môn, điểm số.
-- **Mô hình MVC (Django MTV):**
-  - **Model (M):** Django models (schema, ràng buộc dữ liệu).
-  - **View (V):** UI (React hoặc Django Template) – chỉ hiển thị, không chứa nghiệp vụ.
-  - **Controller (C):** DRF ViewSet/APIView + Router điều phối request → service layer → response.
+## 1) Tổng quan
+- Hệ thống Quản lý Sinh viên dùng **Django server-side rendering** (Django Template + Static), không dùng React/Vite. Áp dụng mô hình **MVC**: Model (schema), Controller (views/urls), View (templates/static).
+- Chức năng chính: quản lý Sinh viên, Khoa/Lớp, Môn học, Đăng ký môn (Enrollment), Điểm (Grade), phân quyền theo role (STUDENT/TEACHER/ADMIN) dùng Django auth.
 
----
+## 2) Kiến trúc MVC
+- **Model:** `apps/*/models.py` (User/Role, Department, ClassRoom, Course, StudentProfile, Enrollment, Grade).
+- **Controller:** `apps/*/views.py` (function/CBV), `apps/*/urls.py` (routing), optional `services.py` cho nghiệp vụ.
+- **View:** Django Templates trong `templates/` (HTML) + `static/` (CSS/JS). `base.html` làm layout, kế thừa cho các trang con.
 
-## 2) Features (MVP)
-- **Auth:** Register / Login / Refresh JWT (SimpleJWT).
-- **Students:** CRUD sinh viên, hồ sơ cá nhân.
-- **Departments & Classes:** quản lý khoa và lớp.
-- **Courses:** quản lý môn học (tín chỉ).
-- **Enrollment:** sinh viên đăng ký môn học.
-- **Grades:** nhập và xem điểm.
-- **Permission:** phân quyền theo role (STUDENT / TEACHER / ADMIN).
+## 3) Cấu trúc thư mục (đang dùng)
+```
+student_management/
+├── manage.py
+├── README.md
+├── .env                      # cấu hình môi trường (DEBUG, SECRET_KEY,...)
+├── requirements.txt          # Django dependencies
+├── config/
+│   ├── __init__.py
+│   ├── settings.py           # cấu hình Django, TEMPLATE DIR, STATICFILES_DIRS
+│   ├── urls.py               # router cấp hệ thống
+│   ├── asgi.py
+│   └── wsgi.py
+├── apps/
+│   ├── accounts/
+│   │   ├── __init__.py
+│   │   ├── models.py         # User/role (hoặc Profile)
+│   │   ├── forms.py          # Login/Register form (nếu cần)
+│   │   ├── views.py          # login/logout view
+│   │   ├── urls.py
+│   │   ├── permissions.py
+│   │   ├── admin.py
+│   │   └── tests.py
+│   ├── students/
+│   │   ├── __init__.py
+│   │   ├── models.py         # StudentProfile
+│   │   ├── forms.py          # ModelForm Student
+│   │   ├── services.py       # nghiệp vụ (tùy chọn)
+│   │   ├── views.py          # CRUD student
+│   │   ├── urls.py
+│   │   ├── admin.py
+│   │   └── tests.py
+│   ├── academics/
+│   │   ├── __init__.py
+│   │   ├── models.py         # Department, ClassRoom, Course
+│   │   ├── forms.py
+│   │   ├── services.py
+│   │   ├── views.py          # CRUD department/class/course
+│   │   ├── urls.py
+│   │   ├── admin.py
+│   │   └── tests.py
+│   └── enrollments/
+│       ├── __init__.py
+│       ├── models.py         # Enrollment, Grade
+│       ├── forms.py          # EnrollmentForm, GradeForm
+│       ├── services.py
+│       ├── views.py          # đăng ký môn, nhập điểm
+│       ├── urls.py
+│       ├── admin.py
+│       └── tests.py
+├── templates/
+│   ├── base.html
+│   ├── auth/
+│   │   └── login.html
+│   └── students/
+│       └── profile.html
+└── static/
+    ├── css/
+    └── js/
+```
 
----
-
-## 3) System Architecture
-- **Phân tầng MVC/MTV:**
-  - Model: `apps/*/models.py`
-  - View (UI): `templates/`, `static/`, hoặc `frontend/` (React) – chỉ hiển thị.
-  - Controller: DRF ViewSet/APIView + routers trong `apps/*/views.py` và `apps/*/urls.py`; gọi nghiệp vụ tại `apps/*/services.py`.
-- **Apps/Modules (trong thư mục `apps/`):**
-  - `apps/accounts`: auth, user, role.
-  - `apps/academics`: khoa, lớp, môn học.
-  - `apps/students`: hồ sơ sinh viên.
-  - `apps/enrollments`: đăng ký môn, điểm số.
-- **API-first:** DRF là Controller chính; UI chỉ tiêu thụ API.
-- **Service layer:** đặt trong `services.py` của từng app (VD: đăng ký môn, tính GPA).
-
----
-
-## 4) Data Model (Database Schema)
-- **User (Django User / AbstractUser):**
-  - `username`, `email`, `password`
-  - `role` (choices: STUDENT, TEACHER, ADMIN)
-- **StudentProfile:**
-  - `user (OneToOne User)`
-  - `student_code`
-  - `class_room (FK ClassRoom)`
-  - `date_of_birth`
-- **Department:**
-  - `name`, `code`
-- **ClassRoom:**
-  - `name`, `department (FK Department)`
-- **Course:**
-  - `name`, `code`, `credits`
-- **Enrollment:**
-  - `student (FK StudentProfile)`
-  - `course (FK Course)`
-  - `semester`
-- **Grade:**
-  - `enrollment (OneToOne Enrollment)`
-  - `score`
-
----
-
-## 5) API Specification
-| Method | Endpoint | Auth | Mô tả |
-|------|---------|------|------|
-| POST | /api/auth/register | Public | Đăng ký |
-| POST | /api/auth/login | Public | Đăng nhập |
-| POST | /api/auth/refresh | Public | Refresh token |
-| GET | /api/students/me | Student | Xem hồ sơ |
-| GET | /api/courses | Public | Danh sách môn |
-| POST | /api/enrollments | Student | Đăng ký môn |
-| GET | /api/enrollments/my | Student | Môn đã đăng ký |
-| POST | /api/grades | Admin/Teacher | Nhập điểm |
-
----
-
-## 6) Business Rules
-- Mỗi sinh viên **không đăng ký trùng môn trong cùng học kỳ**.
-- Điểm chỉ nhập cho enrollment tồn tại.
-- Quyền truy cập dựa trên role.
-
----
-
-## 7) Local Development Setup
-### Yêu cầu
-- Python 3.10+
-- pip, venv
-
-### Khởi tạo & Cấu hình
+## 4) Setup dự án từ 0 (command cụ thể)
 ```bash
+cd student_management
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install --upgrade pip
-pip install django djangorestframework djangorestframework-simplejwt python-dotenv psycopg2-binary
+pip install django python-dotenv
+pip freeze > requirements.txt
 
-# Tạo project và apps bên trong thư mục apps/
 django-admin startproject config .
 mkdir -p apps
 python manage.py startapp accounts apps/accounts
 python manage.py startapp academics apps/academics
 python manage.py startapp students apps/students
 python manage.py startapp enrollments apps/enrollments
-
-# Thêm vào INSTALLED_APPS trong config/settings.py:
-# "apps.accounts", "apps.academics", "apps.students", "apps.enrollments",
-# Thêm REST_FRAMEWORK và SIMPLE_JWT như hướng dẫn.
-
-# Database: dùng PostgreSQL qua biến môi trường hoặc mặc định SQLite.
+mkdir -p templates/auth templates/students static/css static/js
+```
+- `config/settings.py`:
+  - `INSTALLED_APPS` thêm: `apps.accounts`, `apps.academics`, `apps.students`, `apps.enrollments`.
+  - `TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]`.
+  - `STATIC_URL = "static/"`, `STATICFILES_DIRS = [BASE_DIR / "static"]`.
+  - `LOGIN_URL = "/accounts/login/"`, `LOGIN_REDIRECT_URL = "/"`, `LOGOUT_REDIRECT_URL = "/accounts/login/"`.
+  - Nếu custom user: `AUTH_USER_MODEL = "accounts.User"`.
+- Chạy:
+```bash
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
-- Env: tạo `.env` (sao chép từ `.env.example`), chứa `SECRET_KEY`, `DEBUG`, cấu hình Postgres.
+- `.env` (copy từ `.env.example` nếu có): `DEBUG=True`, `SECRET_KEY=change-me`, DB config (mặc định SQLite, có thể Postgres).
 
----
+## 5) Models & Chức năng
+- **Accounts/User:** dùng Django auth, thêm role (STUDENT/TEACHER/ADMIN). Có thể custom User hoặc Profile.
+- **Students:** `StudentProfile(user, student_code, class_room, date_of_birth)`.
+- **Academics:** `Department(name, code)`, `ClassRoom(name, department)`, `Course(name, code, credits)`.
+- **Enrollments:** `Enrollment(student, course, semester)` với ràng buộc không trùng (unique_together). `Grade(enrollment, score)`.
+- **Chức năng chính:** login/logout, dashboard, CRUD student/department/class/course, tạo enrollment, nhập điểm, xem danh sách/chi tiết.
 
-## 8) Project Structure
+## 6) Routing
+- `config/urls.py`: include các app.
+```python
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("accounts/", include("apps.accounts.urls")),
+    path("students/", include("apps.students.urls")),
+    path("academics/", include("apps.academics.urls")),
+    path("enrollments/", include("apps.enrollments.urls")),
+    path("", include("apps.students.urls")),  # dashboard/home
+]
 ```
-student_management/
-│
-├── manage.py
-├── README.md
-├── .env
-├── .env.example
-│
-├── config/                     # Cấu hình hệ thống
-│   ├── __init__.py
-│   ├── settings.py             # Cấu hình Django
-│   ├── urls.py                 # Router cấp hệ thống (Controller level)
-│   ├── asgi.py
-│   └── wsgi.py
-│
-├── apps/                       # Chứa toàn bộ module nghiệp vụ
-│   │
-│   ├── accounts/               # Quản lý người dùng
-│   │   ├── __init__.py
-│   │   ├── models.py           # MODEL
-│   │   ├── serializers.py
-│   │   ├── views.py            # CONTROLLER
-│   │   ├── urls.py             # CONTROLLER (routing)
-│   │   ├── permissions.py
-│   │   └── tests.py
-│   │
-│   ├── students/               # Sinh viên
-│   │   ├── __init__.py
-│   │   ├── models.py           # MODEL
-│   │   ├── serializers.py
-│   │   ├── services.py         # BUSINESS LOGIC (thuộc Controller)
-│   │   ├── views.py            # CONTROLLER
-│   │   ├── urls.py
-│   │   └── tests.py
-│   │
-│   ├── academics/              # Khoa, lớp, môn học
-│   │   ├── __init__.py
-│   │   ├── models.py           # MODEL
-│   │   ├── serializers.py
-│   │   ├── services.py         # BUSINESS LOGIC
-│   │   ├── views.py            # CONTROLLER
-│   │   ├── urls.py
-│   │   └── tests.py
-│   │
-│   ├── enrollments/            # Đăng ký môn & điểm
-│   │   ├── __init__.py
-│   │   ├── models.py           # MODEL
-│   │   ├── serializers.py
-│   │   ├── services.py         # BUSINESS LOGIC (đăng ký, kiểm tra trùng)
-│   │   ├── views.py            # CONTROLLER
-│   │   ├── urls.py
-│   │   └── tests.py
-│
-├── templates/                  # VIEW (nếu dùng Django Template)
-│   ├── base.html
-│   ├── auth/
-│   │   ├── login.html
-│   │   └── register.html
-│   └── students/
-│       └── profile.html
-│
-├── static/                     # CSS, JS, images (nếu dùng template)
-│   ├── css/
-│   └── js/
-│
-├── frontend/                   # VIEW (nếu dùng React)
-│   ├── src/
-│   └── package.json
-│
-└── requirements.txt
-```
-- Service layer ở `apps/*/services.py`; Controller (DRF) gọi vào service, giữ serializer mỏng.
-- Templates/Static/Frontend là tùy chọn cho phần View; API vẫn hoạt động không cần UI.
+- `apps/accounts/urls.py`: login (LoginView với template `auth/login.html`), logout.
+- `apps/students/urls.py`: list, detail, create, update, delete (CBV hoặc FBV).
+- `apps/academics/urls.py`: CRUD departments/classes/courses.
+- `apps/enrollments/urls.py`: tạo enrollment, list enrollment, grade entry.
+
+## 7) Templates (View)
+- `templates/base.html`: layout, navbar (Home, Students, Courses, Enrollments, Admin), flash messages `{% if messages %}` và `{% block content %}`.
+- `templates/auth/login.html`: form login kế thừa `base.html`.
+- `templates/dashboard.html` (tạo mới): tổng quan, link nhanh tới students/courses/enrollments.
+- `templates/students/student_list.html`, `student_detail.html`, `student_form.html`, `student_confirm_delete.html`.
+- `templates/academics/` (tạo): `department_list.html`, `department_form.html`, `class_list.html`, `class_form.html`, `course_list.html`, `course_form.html`.
+- `templates/enrollments/` (tạo): `enrollment_list.html`, `enrollment_form.html`, `enrollment_detail.html`, `grade_form.html`.
+- `templates/students/profile.html`: trang hồ sơ cá nhân (đã có).
+
+## 8) Forms & Validation
+- Dùng `forms.py`/`ModelForm` cho create/update.
+- Rule không đăng ký trùng môn trong cùng học kỳ:
+  - Model `Enrollment` đặt `unique_together = ("student", "course", "semester")`.
+  - `EnrollmentForm.clean()` kiểm tra tồn tại bản ghi trùng → `ValidationError`.
+- `GradeForm`: validate điểm (0–10 hoặc theo thang).
+
+## 9) Permissions & Auth
+- Dùng Django auth: `LoginRequiredMixin`/`login_required`.
+- Role check: `UserPassesTestMixin` hoặc decorator tự viết kiểm tra `user.role`.
+- Student: chỉ xem hồ sơ của mình + enrollment/grade của mình.
+- Teacher/Admin: nhập điểm; Admin full CRUD.
+- `accounts/views.py`: dùng `LoginView`, `LogoutView` hoặc custom để set role redirect.
+
+## 10) Admin site
+- Đăng ký models tại `apps/*/admin.py`.
+- Thêm `list_display`, `search_fields`, `list_filter` (vd Course: name, code; StudentProfile: user, student_code, class_room).
+- Có thể inline Enrollment/Grade trong admin để nhập nhanh.
+
+## 11) Definition of Done
+- Server chạy với `python manage.py runserver`.
+- Login/logout hoạt động.
+- CRUD Students/Departments/Class/Course qua template form.
+- Enrollment tạo được, rule không trùng cùng môn-học-kỳ hoạt động (constraint + validation).
+- Nhập/xem điểm chạy được.
+- Có seed/demo (tạo qua admin hoặc fixture) để duyệt giao diện.

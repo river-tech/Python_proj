@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ form_title|default:"Enrollment" }}</h2>
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}
+    <div class="mb-3">
+      <label class="form-label">{{ field.label }}</label>
+      {{ field.as_widget(attrs={"class": "form-control"}) }}
+      <div class="text-danger small">{{ field.errors }}</div>
+    </div>
+  {% endfor %}
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-secondary" href="{% url 'enrollments:list' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

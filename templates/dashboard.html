@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h1 class="page-title">Student Management System</h1>
+</div>
+<div class="row g-3">
+  <div class="col-md-3">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-title">Total Students</div>
+        <div class="stat-value">{{ total_students }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-title">Total Courses</div>
+        <div class="stat-value">{{ total_courses }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-title">Total Enrollments</div>
+        <div class="stat-value">{{ total_enrollments }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-title">Total Departments</div>
+        <div class="stat-value">{{ total_departments }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
