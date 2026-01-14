@@ -27,6 +27,10 @@
         {% endif %}
         <a class="nav-link" href="{% url 'enrollments:list' %}">Đăng ký môn</a>
         {% if user.role == "ADMIN" %}
+          <a class="nav-link" href="{% url 'students:create' %}">+ Thêm sinh viên</a>
+          <a class="nav-link" href="{% url 'accounts:create_teacher' %}">+ Thêm giáo viên</a>
+        {% endif %}
+        {% if user.role == "ADMIN" %}
           <a class="nav-link" href="/admin/">Quản trị</a>
         {% endif %}
         <a class="nav-link text-danger" href="{% url 'accounts:logout' %}">Đăng xuất</a>

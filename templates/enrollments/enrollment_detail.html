@@ -4,6 +4,8 @@
 <div class="card mb-3">
   <div class="card-body">
     <p><strong>Sinh viên:</strong> {{ enrollment.student.student_code }}</p>
+    <p><strong>Lớp:</strong> {{ enrollment.student.classroom.name }}</p>
+    <p><strong>Khoa:</strong> {{ enrollment.student.classroom.department.name }}</p>
     <p><strong>Môn học:</strong> {{ enrollment.course.code }} - {{ enrollment.course.name }}</p>
     <p><strong>Học kỳ:</strong> {{ enrollment.semester }}</p>
     <p><strong>Ngày tạo:</strong> {{ enrollment.created_at }}</p>
