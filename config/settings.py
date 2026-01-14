@@ -10,8 +10,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+# Production default: DEBUG False unless explicitly set True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [host for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host]
+CSRF_TRUSTED_ORIGINS = [origin for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -63,13 +65,12 @@ if not database_url:
     raise ValueError("DATABASE_URL is required for PostgreSQL connection.")
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default=database_url,
+    "default": dj_database_url.parse(
+        database_url,
         conn_max_age=600,
         ssl_require=True,
     )
 }
-DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql"
 ATOMIC_REQUESTS = True
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -92,14 +93,16 @@ TIME_ZONE = "Asia/Ho_Chi_Minh"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = ["apps.accounts.backends.AccountUserBackend"]
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/login/"
+X_FRAME_OPTIONS = "DENY"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
