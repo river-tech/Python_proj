@@ -1,34 +1,35 @@
 {% extends "base.html" %}
-{% block auth_content %}
-<div class="card-body">
-  <h3 class="mb-3 text-center">Đăng ký</h3>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    <div class="mb-3">
-      <label class="form-label">Tên đăng nhập</label>
-      {{ form.username }}
-      {{ form.username.errors }}
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      {{ form.email }}
-      {{ form.email.errors }}
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Mật khẩu</label>
-      {{ form.password1 }}
-      {{ form.password1.errors }}
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Nhập lại mật khẩu</label>
-      {{ form.password2 }}
-      {{ form.password2.errors }}
-    </div>
-    <button type="submit" class="btn btn-primary w-100 mb-2">Đăng ký</button>
-    <div class="text-center">
-      <a href="{% url 'accounts:login' %}">Đã có tài khoản? Đăng nhập</a>
-    </div>
-  </form>
+
+{% block content %}
+<div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+  <div
+    style="background: var(--card-bg); padding: 2rem; border-radius: 16px; border: 1px solid var(--glass-border); width: 100%; max-width: 400px; backdrop-filter: blur(10px);">
+    <h2 style="text-align: center; margin-bottom: 2rem; color: var(--secondary-color);">Create Account</h2>
+
+    <form method="post">
+      {% csrf_token %}
+
+      {% for field in form %}
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label style="display: block; margin-bottom: 0.5rem;">{{ field.label }}</label>
+        <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" class="form-control"
+          required
+          style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 8px; color: white;">
+        {% if field.errors %}
+        <div style="color: #ef4444; font-size: 0.85rem; margin-top: 0.25rem;">
+          {{ field.errors.0 }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary"
+        style="width: 100%; margin-top: 1.5rem; padding: 0.8rem; background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));">Register</button>
+
+      <div style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+        Already have an account? <a href="{% url 'accounts:login' %}" style="color: var(--primary-color);">Log In</a>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}

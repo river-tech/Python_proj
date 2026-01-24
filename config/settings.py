@@ -24,10 +24,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
-    "apps.accounts",
-    "apps.academics",
-    "apps.students",
-    "apps.enrollments",
+    "apps.accounts.apps.AccountsConfig",
+
+    "apps.movies.apps.MoviesConfig",
 ]
 
 MIDDLEWARE = [

@@ -27,7 +27,7 @@ def register(request):
             messages.success(request, "Đăng ký thành công, hãy đăng nhập.")
             # Optionally log user in right away:
             login(request, user, backend="apps.accounts.backends.AccountUserBackend")
-            return redirect(reverse("students:dashboard"))
+            return redirect("home")
     else:
         form = RegisterForm()
     return render(request, "auth/register.html", {"form": form})

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="movie-detail-header">
+    <div style="flex-shrink: 0;">
+        {% if movie.poster_url %}
+        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="poster-large">
+        {% else %}
+        <div class="poster-large"
+            style="height: 450px; background: #2d3748; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-film fa-4x"></i>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="detail-content">
+        <h1>{{ movie.title }}</h1>
+        <div class="detail-stats">
+            <span><i class="far fa-calendar"></i> {{ movie.release_date }}</span>
+            <span><i class="far fa-clock"></i> {{ movie.duration }} min</span>
+            <span class="rating-badge"><i class="fas fa-star"></i> {{ movie.rating }}</span>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {% for genre in movie.genres.all %}
+            <span class="filter-pill" style="font-size: 0.8rem;">{{ genre.name }}</span>
+            {% endfor %}
+        </div>
+
+        <p style="font-size: 1.1rem; color: #cbd5e1; margin-bottom: 2rem;">
+            {{ movie.description }}
+        </p>
+
+        {% if movie.ai_metadata %}
+        <div class="ai-metadata">
+            <span class="ai-label"><i class="fas fa-robot"></i> AI Analysis</span>
+            <p>{{ movie.ai_metadata }}</p>
+        </div>
+        {% endif %}
+
+        {% if movie.trailer_url %}
+        <a href="{{ movie.trailer_url }}" target="_blank" class="btn btn-primary">
+            <i class="fas fa-play"></i> Watch Trailer
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if recommendations %}
+<section class="recommendations">
+    <h2 class="section-title">AI Recommends</h2>
+    <div class="movie-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+        {% for rec in recommendations %}
+        <a href="{% url 'movie_detail' rec.slug %}" class="movie-card">
+            {% if rec.poster_url %}
+            <img src="{{ rec.poster_url }}" alt="{{ rec.title }}" class="movie-poster">
+            {% else %}
+            <div class="movie-poster" style="background: #2d3748;"></div>
+            {% endif %}
+            <div class="movie-info">
+                <h3 class="movie-title" style="font-size: 1rem;">{{ rec.title }}</h3>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="reviews-section">
+    <h2 class="section-title">Reviews ({{ reviews.count }})</h2>
+
+    <div class="review-form">
+        <h3>Add Your Review</h3>
+        <form action="{% url 'add_review' movie.slug %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="user_name" class="form-control" placeholder="Your Name"
+                    value="{% if user.is_authenticated %}{{ user.username }}{% endif %}" required>
+            </div>
+            <div class="form-group">
+                <select name="rating" class="form-control" required style="color: #fff; background: rgba(0,0,0,0.2);">
+                    <option value="">Select Rating</option>
+                    <option value="10">10 - Masterpiece</option>
+                    <option value="9">9 - Amazing</option>
+                    <option value="8">8 - Great</option>
+                    <option value="7">7 - Good</option>
+                    <option value="6">6 - Okay</option>
+                    <option value="5">5 - Average</option>
+                    <option value="4">4 - Poor</option>
+                    <option value="1">1 - Terrible</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <textarea name="comment" class="form-control" rows="3" placeholder="What did you think?"
+                    required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Review</button>
+        </form>
+    </div>
+
+    <div class="review-list">
+        {% for review in reviews %}
+        <div class="review-card">
+            <div class="review-header">
+                <div>
+                    <strong>{{ review.user_name }}</strong>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem;">{{
+                        review.created_at|timesince }} ago</span>
+                </div>
+                <div>
+                    <span class="rating-badge">{{ review.rating }}/10</span>
+                </div>
+            </div>
+            <p>{{ review.comment }}</p>
+            {% if review.sentiment_label %}
+            <div style="margin-top: 1rem;">
+                <span class="sentiment-badge sentiment-{{ review.sentiment_label }}">
+                    AI Sentiment: {{ review.sentiment_label }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No reviews yet. Be the first to review!</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

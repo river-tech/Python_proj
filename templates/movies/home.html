@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Discover Your Next <span style="color: var(--secondary-color);">Favorite</span></h1>
+<p>AI-powered recommendations tailored just for you. Explore our curated collection.</p>
+
+<div style="margin-top: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+    <form action="." method="GET" style="display: flex; gap: 0.5rem;">
+        <input type="text" name="q" placeholder="Search movies, topics, vibes..." value="{{ request.GET.q|default:'' }}"
+            style="flex: 1; padding: 0.8rem 1.2rem; border-radius: 30px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; outline: none;">
+        <button type="submit" class="btn btn-primary" style="border-radius: 30px; padding: 0.8rem 1.5rem;">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
+</section>
+
+<div class="filters">
+    <a href="{% url 'home' %}" class="filter-pill {% if not current_genre %}active{% endif %}">All</a>
+    {% for genre in genres %}
+    <a href="?genre={{ genre.slug }}" class="filter-pill {% if current_genre == genre.slug %}active{% endif %}">
+        {{ genre.name }}
+    </a>
+    {% endfor %}
+</div>
+
+<div class="movie-grid">
+    {% for movie in movies %}
+    <a href="{% url 'movie_detail' movie.slug %}" class="movie-card">
+        {% if movie.poster_url %}
+        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="movie-poster">
+        {% else %}
+        <div class="movie-poster"
+            style="background: #2d3748; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-film fa-3x" style="color: #4a5568;"></i>
+        </div>
+        {% endif %}
+        <div class="movie-info">
+            <h3 class="movie-title">{{ movie.title }}</h3>
+            <div class="movie-meta">
+                <span><i class="far fa-calendar"></i> {{ movie.release_date|date:"Y" }}</span>
+                <span class="rating-badge"><i class="fas fa-star"></i> {{ movie.rating }}</span>
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <p style="text-align: center; grid-column: 1/-1;">No movies found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -64,7 +64,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = []
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "accounts_user"
 
     @property
