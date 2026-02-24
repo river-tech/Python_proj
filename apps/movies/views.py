@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from .models import Movie, Review, Genre
-from .services import analyze_sentiment, get_recommendations
+from .services import analyze_sentiment, get_recommendations, semantic_search
 
 from django.db.models import Q
 
@@ -14,11 +14,7 @@ def home(request):
     # Search
     query = request.GET.get('q')
     if query:
-        movies = movies.filter(
-            Q(title__icontains=query) | 
-            Q(description__icontains=query) | 
-            Q(ai_metadata__icontains=query)
-        )
+        movies = semantic_search(query, top_k=24)
 
     # Filter by genre if provided
     genre_slug = request.GET.get('genre')

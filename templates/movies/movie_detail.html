@@ -3,8 +3,8 @@
 {% block content %}
 <div class="movie-detail-header">
     <div style="flex-shrink: 0;">
-        {% if movie.poster_url %}
-        <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" class="poster-large">
+        {% if movie.poster_path %}
+        <img src="{{ movie.poster_path }}" alt="{{ movie.title }}" class="poster-large">
         {% else %}
         <div class="poster-large"
             style="height: 450px; background: #2d3748; display: flex; align-items: center; justify-content: center;">
@@ -52,8 +52,8 @@
     <div class="movie-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
         {% for rec in recommendations %}
         <a href="{% url 'movie_detail' rec.slug %}" class="movie-card">
-            {% if rec.poster_url %}
-            <img src="{{ rec.poster_url }}" alt="{{ rec.title }}" class="movie-poster">
+            {% if rec.poster_path %}
+            <img src="{{ rec.poster_path }}" alt="{{ rec.title }}" class="movie-poster">
             {% else %}
             <div class="movie-poster" style="background: #2d3748;"></div>
             {% endif %}

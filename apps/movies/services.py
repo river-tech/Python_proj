@@ -1,11 +1,69 @@
-import random
+import os
+import pickle
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from scipy.spatial.distance import cdist
+from django.db import models
 from django.db.models import Q
 from .models import Movie
 import re
+import random
+
+# Global variables for caching model and embeddings
+_semantic_model = None
+_movie_embeddings = None
+_movie_ids = None
+
+def get_semantic_model():
+    global _semantic_model
+    if _semantic_model is None:
+        _semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
+    return _semantic_model
+
+def load_embeddings():
+    global _movie_embeddings, _movie_ids
+    if _movie_embeddings is None or _movie_ids is None:
+        filepath = os.path.join('data', 'movie_embeddings.pkl')
+        if os.path.exists(filepath):
+            with open(filepath, 'rb') as f:
+                data = pickle.load(f)
+                _movie_ids = data['movie_ids']
+                _movie_embeddings = data['embeddings']
+        else:
+            _movie_ids = []
+            _movie_embeddings = np.array([])
+    return _movie_ids, _movie_embeddings
+
+def semantic_search(query, top_k=20):
+    if not query:
+        return Movie.objects.none()
+        
+    model = get_semantic_model()
+    ids, embeddings = load_embeddings()
+    
+    if len(ids) == 0:
+        # Fallback to basic search if embeddings aren't generated
+        return Movie.objects.filter(
+            Q(title__icontains=query) | 
+            Q(description__icontains=query) | 
+            Q(ai_metadata__icontains=query)
+        )
+        
+    query_embedding = model.encode([query])
+    
+    # Calculate cosine distance (1 - cosine similarity)
+    distances = cdist(query_embedding, embeddings, metric='cosine')[0]
+    
+    # Get indices of top_k smallest distances
+    top_indices = np.argsort(distances)[:top_k]
+    
+    top_ids = [ids[idx] for idx in top_indices]
+    
+    preserved_order = models.Case(*[models.When(pk=pk, then=pos) for pos, pk in enumerate(top_ids)])
+    return Movie.objects.filter(id__in=top_ids).order_by(preserved_order)
 
 def analyze_sentiment(text):
     """
-    Analyze sentiment of the text.
     Returns 'Positive', 'Negative', or 'Neutral'.
     """
     if not text:

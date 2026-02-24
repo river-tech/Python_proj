@@ -81,11 +81,11 @@ class Command(BaseCommand):
                 defaults={
                     'slug': slugify(m_data['title']),
                     'description': m_data['description'],
-                    'release_date': m_data['release_date'],
-                    'duration': m_data['duration'],
-                    'rating': m_data['rating'],
-                    'poster_url': m_data['poster_url'],
-                    'ai_metadata': m_data['ai_metadata']
+                'release_date': m_data['release_date'],
+                'duration': m_data['duration'],
+                'rating': m_data['rating'],
+                'poster_path': m_data['poster_url'],
+                'ai_metadata': m_data['ai_metadata']
                 }
             )
             

@@ -73,23 +73,45 @@
 - Clickjacking protection (`X-Frame-Options` mặc định).
 - Session security (cookie HttpOnly, server-side session).
 
-## 9. Cách chạy dự án
+## 9. Cách cài đặt và chạy dự án
+
+### Cách 1: Chạy nhanh bằng script (macOS/Linux)
+Bạn có thể cấp quyền thực thi và chạy trực tiếp file `setup.sh` (đã bao gồm các lệnh cài đặt, migrate và chạy server):
 ```bash
-git clone <repo>
-cd student_management
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env  # điền DATABASE_URL PostgreSQL sẵn bảng
-
-# Test kết nối DB
-./.venv/bin/python manage.py dbshell <<'SQL'
-SELECT 1;
-SQL
-
-# Chạy server
-./.venv/bin/python manage.py runserver
+chmod +x setup.sh
+./setup.sh
 ```
+
+### Cách 2: Chạy thủ công từng bước
+**Bước 1: Khởi tạo và kích hoạt môi trường ảo**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # Đối với macOS/Linux
+# .venv\Scripts\activate   # Đối với Windows
+```
+
+**Bước 2: Cài đặt các thư viện phụ thuộc**
+```bash
+pip install -r requirements.txt
+```
+
+**Bước 3: Cấu hình biến môi trường**
+```bash
+cp .env.example .env
+# (Tùy chọn) Mở file .env để cấu hình DATABASE_URL nếu bạn dùng CSDL riêng.
+```
+
+**Bước 4: Migrate cơ sở dữ liệu**
+```bash
+python3 manage.py migrate
+```
+
+**Bước 5: Chạy server phát triển**
+```bash
+python3 manage.py runserver
+```
+
+Truy cập ứng dụng tại địa chỉ: `http://127.0.0.1:8000/`
 
 ## 10. Hướng dẫn demo & kiểm thử
 - Tạo user: Admin/Teacher/Student (qua admin site hoặc script seed).

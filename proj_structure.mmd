@@ -1,0 +1,50 @@
+graph TD
+    %% Khởi đầu quy trình
+    Start([Người dùng tương tác]) --> IsIDExist{Có movie_id?}
+
+    %% TRƯỜNG HỢP 1: TRANG CHỦ (Không có movie_id)
+    IsIDExist -- Không --> HomeFlow[Trang chủ / Khám phá]
+    subgraph Home_Recommendation [Gợi ý tại Trang chủ]
+        HomeFlow --> RandomLogic[Lấy ngẫu nhiên Top N<br/>Movie.objects.order_by]
+        HomeFlow --> UserBehaviorAI[AI: Phân tích thói quen/lịch sử<br/>User Behavior Recommender]
+        RandomLogic & UserBehaviorAI --> MergeHome[Hợp nhất danh sách hiển thị]
+    end
+
+    %% TRƯỜNG HỢP 2: TRANG CHI TIẾT (Có movie_id)
+    IsIDExist -- Có --> DetailFlow[Trang chi tiết phim]
+    
+    subgraph Current_Logic [Logic hiện tại: apps/movies/services.py]
+        DetailFlow --> Step1[Bước 1: Lọc ứng viên<br/>Cùng Genre - Loại bỏ chính nó]
+        Step1 --> Step2[Bước 2: Ranking - Tính điểm]
+        
+        subgraph Jaccard_Ranking [Thuật toán Jaccard]
+            Step2 --> TextCombine[Gộp Title + ai_metadata]
+            TextCombine --> Jaccard[Tính Jaccard Similarity<br/>tokens tập từ khóa]
+            Jaccard --> CalcScore["Score = Similarity * Rating"]
+        end
+        
+        CalcScore --> Sort[Sắp xếp Score giảm dần]
+        Sort --> TopN[Lấy Top N phim]
+        
+        TopN --> CheckEnough{Đủ số lượng?}
+        CheckEnough -- Không --> Fallback[Bù bằng phim có Rating cao nhất]
+        CheckEnough -- Có --> FinalRecommends[Danh sách phim tương tự]
+    end
+
+    %% TÍCH HỢP CÁC TÍNH NĂNG AI MỚI
+    subgraph Advanced_AI_Features [Hệ sinh thái AI bổ trợ]
+        FinalRecommends --> SemanticSearch[AI: Semantic Search<br/>Tìm kiếm theo ngữ nghĩa/vector]
+        DetailFlow --> AIChatbot[AI Chatbot: Trao đổi &<br/>Giải đáp về bộ phim hiện tại]
+    end
+
+    %% Đầu ra cuối cùng
+    MergeHome --> UI([Hiển thị giao diện])
+    FinalRecommends --> UI
+    Fallback --> UI
+    SemanticSearch --> UI
+    AIChatbot <--> UI
+
+    %% Styling
+    style Current_Logic fill:#1a1a1a,stroke:#3498db,stroke-width:2px,color:#fff
+    style Advanced_AI_Features fill:#0e1117,stroke:#f1c40f,stroke-width:2px,color:#fff
+    style Jaccard_Ranking fill:#2c3e50,stroke:#bdc3c7,color:#fff

@@ -12,15 +12,17 @@ class Genre(models.Model):
         return self.name
 
 class Movie(models.Model):
+    tmdb_id = models.IntegerField(unique=True, null=True, blank=True, help_text="Origin TMDB ID")
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
-    description = models.TextField()
+    original_language = models.CharField(max_length=20, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    poster_path = models.CharField(max_length=500, null=True, blank=True)
     release_date = models.DateField(null=True, blank=True)
     duration = models.IntegerField(help_text="Duration in minutes", null=True, blank=True)
-    rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
-    poster_url = models.CharField(max_length=500, null=True, blank=True)
-    trailer_url = models.CharField(max_length=500, null=True, blank=True)
+    rating = models.DecimalField(max_digits=4, decimal_places=1, default=0.0)
     
+    trailer_url = models.CharField(max_length=500, null=True, blank=True)
     # AI Metadata for filtering/recommendation
     ai_metadata = models.TextField(null=True, blank=True, help_text="AI generated tags and features")
     
