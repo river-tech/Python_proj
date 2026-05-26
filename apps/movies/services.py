@@ -64,38 +64,93 @@ def load_embeddings():
 
 
 def semantic_search(query, top_k=20):
+    """
+    Hybrid search: PostgreSQL BM25 (ts_rank_cd) + cosine (FAISS / sentence-transformers),
+    fused with Reciprocal Rank Fusion (RRF). Falls back to ICONTAINS if the
+    search_vector column hasn't been migrated yet.
+    """
     if not query:
         return Movie.objects.none()
 
-    keyword_qs = Movie.objects.filter(
-        Q(title__icontains=query) |
-        Q(description__icontains=query) |
-        Q(ai_metadata__icontains=query)
-    )
-    keyword_ids = list(keyword_qs.values_list('id', flat=True))
+    RRF_K = 60
 
-    model = get_semantic_model()
-    ids, embeddings, _, __ = load_embeddings()
+    bm25_ids = _bm25_search(query, top_k * 2)
+    cosine_ids = _cosine_search(query, top_k * 2)
 
-    if len(ids) == 0:
-        return keyword_qs
+    if not bm25_ids and not cosine_ids:
+        return Movie.objects.none()
 
-    query_embedding = model.encode([query])
-    distances = cdist(query_embedding, embeddings, metric='cosine')[0]
-    top_indices = np.argsort(distances)[:top_k]
-    semantic_ids = [ids[idx] for idx in top_indices]
+    bm25_rank = {mid: r for r, mid in enumerate(bm25_ids)}
+    cosine_rank = {mid: r for r, mid in enumerate(cosine_ids)}
 
-    seen = set(keyword_ids)
-    merged_ids = list(keyword_ids)
-    for mid in semantic_ids:
-        if mid not in seen:
-            seen.add(mid)
-            merged_ids.append(mid)
+    rrf_score = {}
+    for mid in set(bm25_rank) | set(cosine_rank):
+        s = 0.0
+        if mid in bm25_rank:
+            s += 1.0 / (RRF_K + bm25_rank[mid])
+        if mid in cosine_rank:
+            s += 1.0 / (RRF_K + cosine_rank[mid])
+        rrf_score[mid] = s
+
+    sorted_ids = sorted(rrf_score, key=rrf_score.get, reverse=True)[:top_k]
 
     preserved_order = models.Case(
-        *[models.When(pk=pk, then=pos) for pos, pk in enumerate(merged_ids)]
+        *[models.When(pk=pk, then=pos) for pos, pk in enumerate(sorted_ids)]
     )
-    return Movie.objects.filter(id__in=merged_ids).order_by(preserved_order)
+    return Movie.objects.filter(id__in=sorted_ids).order_by(preserved_order)
+
+
+def _bm25_search(query, top_k):
+    """
+    PostgreSQL full-text search via search_vector + ts_rank_cd.
+    Returns movie_ids ordered by relevance desc. Falls back to ICONTAINS
+    if search_vector column doesn't exist or any DB error occurs.
+    """
+    from django.db import connection, ProgrammingError, DatabaseError
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id
+                FROM movies
+                WHERE search_vector @@ plainto_tsquery('english', %s)
+                ORDER BY ts_rank_cd(search_vector, plainto_tsquery('english', %s)) DESC
+                LIMIT %s
+                """,
+                [query, query, top_k],
+            )
+            return [row[0] for row in cur.fetchall()]
+    except (ProgrammingError, DatabaseError):
+        # search_vector column missing → fall back to ICONTAINS (unscored but functional)
+        return list(
+            Movie.objects.filter(
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(ai_metadata__icontains=query)
+            ).values_list('id', flat=True)[:top_k]
+        )
+
+
+def _cosine_search(query, top_k):
+    """Encode the query and run a FAISS / cdist nearest-neighbour search."""
+    model = get_semantic_model()
+    ids, embeddings, index, _ = load_embeddings()
+
+    if len(ids) == 0:
+        return []
+
+    query_emb = model.encode([query]).astype('float32')
+
+    if index is not None:
+        import faiss
+        q = query_emb.copy()
+        faiss.normalize_L2(q)
+        _sims, fidxs = index.search(q, top_k)
+        return [ids[i] for i in fidxs[0] if i >= 0]
+
+    distances = cdist(query_emb, embeddings, metric='cosine')[0]
+    return [ids[idx] for idx in np.argsort(distances)[:top_k]]
 
 
 def calculate_similarity(text1, text2):
