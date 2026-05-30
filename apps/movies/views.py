@@ -57,6 +57,16 @@ def movie_detail(request, slug):
     reviews = movie.reviews.all().order_by('-created_at')
 
     user_id = request.user.id if request.user.is_authenticated else None
+
+    # Record a lightweight "viewed" interaction so the feed can personalize from clicks,
+    # not just ratings. Uses get_or_create so existing rating/comment rows aren't disturbed.
+    if request.user.is_authenticated:
+        UserInteraction.objects.get_or_create(
+            user=request.user,
+            movie=movie,
+            defaults={'watched': True, 'watch_time_pct': 0.1},
+        )
+
     recommendations = get_recommendations(movie_id=movie.id, user_id=user_id, top_n=4)
 
     context = {
