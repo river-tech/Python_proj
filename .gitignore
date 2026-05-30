@@ -71,5 +71,3 @@ htmlcov/
 # Git
 # =========================
 *.orig
-# embeddings pickle files
-data/*.pkl
