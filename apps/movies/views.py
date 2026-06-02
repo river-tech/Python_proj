@@ -16,27 +16,44 @@ def home(request):
 
     is_personalized = False
 
+    # 1. TỐI ƯU CƠ BẢN: Chuẩn bị QuerySet gốc có sẵn prefetch_related
+    # Việc này chặn đứng hàng trăm câu SQL khi render {{ movie.genres.all }} ở HTML
+    base_qs = Movie.objects.prefetch_related('genres')
+
     if vibe:
         movies = semantic_search(vibe, top_k=24)
         query = vibe
     elif query:
         movies = semantic_search(query, top_k=24)
     elif genre_slug:
-        movies = Movie.objects.filter(genres__slug=genre_slug).order_by('-rating')
+        movies = base_qs.filter(genres__slug=genre_slug).order_by('-rating')[:24] # Tối ưu: Thêm Limit 24
     elif request.user.is_authenticated:
         feed = get_user_feed(request.user.id, top_n=24)
         if feed:
+            # Lưu ý: Nếu feed trả về List object thường, bạn cần kiểm tra hàm get_user_feed
+            # Nếu nó trả về QuerySet, hãy chắc chắn trong đó có gọi .prefetch_related('genres')
             movies = feed
             is_personalized = True
         else:
-            movies = Movie.objects.all().order_by('-created_at')
+            # 2. TỐI ƯU N+1 & TRÀN RAM: Thêm prefetch_related và GIỚI HẠN số lượng [:24]
+            movies = base_qs.order_by('-created_at')[:24] 
     else:
-        movies = Movie.objects.all().order_by('-created_at')
+        # Tương tự như trên
+        movies = base_qs.order_by('-created_at')[:24]
 
     if genre_slug and (vibe or query):
-        movies = movies.filter(genres__slug=genre_slug)
+        # Lưu ý: Đoạn này có thể lỗi nếu movies là kết quả từ semantic_search (List) chứ không phải QuerySet
+        # Hãy chắc chắn semantic_search trả về QuerySet hoặc bạn xử lý filter bằng Python list.
+        if isinstance(movies, list):
+            movies = [m for m in movies if any(g.slug == genre_slug for g in m.genres.all())]
+        else:
+            movies = movies.filter(genres__slug=genre_slug)
 
-    ai_pick = Movie.objects.filter(rating__gte=8.0).order_by('?').first()
+    # 3. TỐI ƯU TRUY VẤN AI_PICK:
+    # Dùng order_by('?') trên bảng lớn rất chậm. 
+    # Nhưng vì là bản demo, tạm chấp nhận nếu bảng nhỏ. Nếu bảng lớn, nên bốc ngẫu nhiên id ở tầng Python.
+    ai_pick = base_qs.filter(rating__gte=8.0).order_by('?').first()
+    
     genres = Genre.objects.all()
 
     context = {
