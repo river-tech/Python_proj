@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 import dj_database_url
-import config.monkeypatch  # noqa: F401 - apply compatibility patch early
+# import config.monkeypatch  # noqa: F401 - temporarily disabled to rule out monkeypatching conflicts
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -130,3 +130,26 @@ SIMPLE_JWT = {
 GRAPHENE = {
     "SCHEMA": "config.schema.schema",
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.db.backends": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
+
+

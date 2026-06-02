@@ -3,6 +3,46 @@
 
 {% block content %}
 <div class="movie-detail-header">
+    <style>
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: #121212;
+            color: #cbd5e1;
+            border: 1px solid #2a2a2a;
+            padding: 0.55rem 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 160ms ease, color 160ms ease, transform 160ms ease, border-color 160ms ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            background: #1a1a1a;
+            color: #ffffff;
+            border-color: #3a3a3a;
+            transform: translateX(-4px);
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+    </style>
+
+    <div style="width: 100%; margin-bottom: 1.2rem;">
+        <button type="button" class="back-btn" onclick="window.history.back()" aria-label="Quay lại">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M14.5 5.5L8 12L14.5 18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Quay lại</span>
+        </button>
+    </div>
+
     <div style="flex-shrink: 0;">
         {% if movie.poster_path %}
         <img src="{{ movie.poster_path }}" alt="{{ movie.title }}" class="poster-large">
@@ -13,6 +53,8 @@
 
     <div class="detail-content">
         <h1>{{ movie.title }}</h1>
+        <div style="display:none"></div>
+
         <div class="detail-stats">
             <span><i class="far fa-calendar"></i> {{ movie.release_date }}</span>
             <span><i class="far fa-clock"></i> {{ movie.duration }} min</span>
